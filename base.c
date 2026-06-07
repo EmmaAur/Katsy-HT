@@ -26,7 +26,11 @@ int main(int argc, char* argv[]) {
             getline(&rivi, &len, stdin);
             
             if (strstr(rivi, " ") == NULL) { //IF there are no spaces (parameters) given for a command
-                pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
+                if (strstr(rivi, "exit") != NULL) {
+					exit(0);
+				}
+
+				pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
                 char path[pathSize]; //path to the specific command
                 snprintf(path, sizeof(path), "%s%s", basePath, rivi); //concatenating the strings into one specific path
                 printf("%s", path);

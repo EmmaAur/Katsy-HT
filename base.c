@@ -41,12 +41,26 @@ int main(int argc, char* argv[]) {
                 }
                 system(path); //system executes the program residing in the path
             } else { //IF there are spaces, meaning there are parameters given
+                //first-time initiliazations and such are done before the while-loop
                 char *delimiter = strtok(rivi, " ");
+                
+                char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
+                int a = 0;
+                
                 char *pathPtr = delimiter; //let's save the actual name of the command into its own variable
-                pathSize = strlen(basePath) + strlen(pathPtr) + 1;
-                char path[pathSize];
-                snprintf(path, sizeof(path), "%s%s", basePath, pathPtr);
+                char path[100];
+                snprintf(path, sizeof(path), "%s%s", basePath, pathPtr); //so this is the actual command path without any options
+               
+                while ((strtok(NULL, " ")) != NULL ) {
+                    options[a] = delimiter;
+                    a++;
+                }
+                options[a] = '\0';
+
                 printf("%s", path);
+                for (int i=0; i<a; i++) {
+                    printf("%s", options[i]);
+                }
 
             }
             

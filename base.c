@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
             } else { //IF there are spaces, meaning there are parameters given
                 //first-time initiliazations and such are done before the while-loop
                 char *delimiter = strtok(rivi, " ");
-                printf("Delimiter on %s\n", delimiter);
+                //printf("Delimiter on %s\n", delimiter);
                 kytkin = 1;
                 
                 char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
@@ -63,15 +63,21 @@ int main(int argc, char* argv[]) {
                         kytkin = 0;
                         continue;
                     }
+                    //replace the newline if this is the last argument
+                    if (strstr(delimiter, "\n")) {
+                        delimiter[strcspn(delimiter, "\n")] = '\0';
+                    }
+
                     options[a] = delimiter;
-                    printf("Options %d on %s\n", a, options[a]);
+                    //printf("Options %d on %s\n", a, options[a]);
                     a++;
                 }
-                options[a] = '\0';
 
-                for (int i=0; i<a; i++) {
+                options[a] = '\0'; //execv requires null terminator at the end of array
+
+                /**for (int i=0; i<a; i++) {
                     printf("%s", options[i]);
-                }
+                }*/
 
                 if (child_pid == -1) {
                     perror("Error creating process.\n");

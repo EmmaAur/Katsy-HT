@@ -43,6 +43,8 @@ int main(int argc, char* argv[]) {
             } else { //IF there are spaces, meaning there are parameters given
                 //first-time initiliazations and such are done before the while-loop
                 char *delimiter = strtok(rivi, " ");
+                printf("Delimiter on %s\n", delimiter);
+                int kytkin = 1;
                 
                 char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
                 int a = 0;
@@ -51,8 +53,12 @@ int main(int argc, char* argv[]) {
                 char path[100];
                 snprintf(path, sizeof(path), "%s%s", basePath, pathPtr); //so this is the actual command path without any options
                
-                while ((strtok(NULL, " ")) != NULL ) {
+                while (kytkin == 1) {
+                    if ((delimiter = strtok(NULL, " ")) == NULL) {
+                        kytkin = 0;
+                    }
                     options[a] = delimiter;
+                    printf("Options %d on %s\n", a, options[a]);
                     a++;
                 }
                 options[a] = '\0';

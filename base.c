@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/wait.h>
 
 extern int errno;
 
@@ -44,18 +45,23 @@ int main(int argc, char* argv[]) {
                 //first-time initiliazations and such are done before the while-loop
                 char *delimiter = strtok(rivi, " ");
                 printf("Delimiter on %s\n", delimiter);
-                int kytkin = 1;
+                kytkin = 1;
                 
                 char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
-                int a = 0;
+                int a = 1;
+                pid_t child_pid = fork();
+                int statusCode = 0;
                 
                 char *pathPtr = delimiter; //let's save the actual name of the command into its own variable
                 char path[100];
                 snprintf(path, sizeof(path), "%s%s", basePath, pathPtr); //so this is the actual command path without any options
+
+                options[0] = path; //execv wants the first argument to be the executable command
                
                 while (kytkin == 1) {
                     if ((delimiter = strtok(NULL, " ")) == NULL) {
                         kytkin = 0;
+                        continue;
                     }
                     options[a] = delimiter;
                     printf("Options %d on %s\n", a, options[a]);
@@ -63,10 +69,23 @@ int main(int argc, char* argv[]) {
                 }
                 options[a] = '\0';
 
-                printf("%s", path);
                 for (int i=0; i<a; i++) {
                     printf("%s", options[i]);
                 }
+
+                if (child_pid == -1) {
+                    perror("Error creating process.\n");
+                }
+
+                if (child_pid == 0) {
+                    //child process code
+                    statusCode = execv(path, options);
+                } else {
+                    //parent process code
+                    waitpid(child_pid, NULL, 0);
+                    printf("Child process is done.\n");
+                }
+
 
             }
             

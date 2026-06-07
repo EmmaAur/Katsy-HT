@@ -1,6 +1,7 @@
 //srcs: 
 // https://www.geeksforgeeks.org/c/snprintf-c-library/
 // https://www.geeksforgeeks.org/linux-unix/access-command-in-linux-with-examples/
+// http://calsnotes.com/posts/how-to-use-fork-wait-and-exec/how-to-use-fork-wait-and-exec/
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,19 +25,32 @@ int main(int argc, char* argv[]) {
             printf("lush> ");
             getline(&rivi, &len, stdin);
             
-            pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
-            char path[pathSize]; //path to the specific command
-            snprintf(path, sizeof(path), "%s%s", basePath, rivi); //concatenating the strings into one specific path
-            printf("%s", path);
-            path[strlen(path)-1] = '\0'; //stripping the newline-character from the path
+            if (strstr(rivi, " ") == NULL) { //IF there are no spaces (parameters) given for a command
+                pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
+                char path[pathSize]; //path to the specific command
+                snprintf(path, sizeof(path), "%s%s", basePath, rivi); //concatenating the strings into one specific path
+                printf("%s", path);
+                path[strlen(path)-1] = '\0'; //stripping the newline-character from the path
             
-            accessCode = access(path, X_OK); //check for execution
-            if (accessCode == -1) {
-                printf("Not executable. Error number %d\n", errno);
-            } else {
-                printf("Executable.\n");
-            }
+                accessCode = access(path, X_OK); //check for execution
+                if (accessCode == -1) {
+                    printf("Not executable. Error number %d\n", errno);
+                    continue;
+                } else {
+                    printf("Executable.\n");
+                }
+                system(path); //system executes the program residing in the path
+            } else { //IF there are spaces, meaning there are parameters given
+                char *delimiter = strtok(rivi, " ");
+                char *pathPtr = delimiter; //let's save the actual name of the command into its own variable
+                pathSize = strlen(basePath) + strlen(pathPtr) + 1;
+                char path[pathSize];
+                snprintf(path, sizeof(path), "%s%s", basePath, pathPtr);
+                printf("%s", path);
 
+            }
+            
+            
 
         }
     }

@@ -69,7 +69,6 @@ int main(int argc, char* argv[]) {
                 
                 char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
                 int a = 1;
-                pid_t child_pid = fork();
                 int statusCode = 0;
                 
                 char *pathPtr = delimiter; //let's save the actual name of the command into its own variable
@@ -99,6 +98,7 @@ int main(int argc, char* argv[]) {
                     printf("%s", options[i]);
                 }*/
 
+                pid_t child_pid = fork();
                 if (child_pid == -1) {
                     perror("Error creating process.\n");
                 }
@@ -121,5 +121,11 @@ int main(int argc, char* argv[]) {
             
 
         }
+    } else if (argc == 2)
+    {
+        /* code */
+    } else {
+        printf("The shell can be invoked with only 1 or 2 arguments i.e. ./lush or ./lush filename.txt");
     }
+    
 }

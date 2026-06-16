@@ -27,11 +27,15 @@ int main(int argc, char* argv[]) {
             getline(&rivi, &len, stdin);
             
             if (strstr(rivi, " ") == NULL) { //IF there are no spaces (parameters) given for a command
+                char *options[100];
+
                 pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
                 char path[pathSize]; //path to the specific command
                 snprintf(path, sizeof(path), "%s%s", basePath, rivi); //concatenating the strings into one specific path
-                printf("%s", path);
+                //printf("%s", path);
                 path[strlen(path)-1] = '\0'; //stripping the newline-character from the path
+                options[0] = path;
+                options[1] = '\0';
             
                 accessCode = access(path, X_OK); //check for execution
                 if (accessCode == -1) {
@@ -40,12 +44,28 @@ int main(int argc, char* argv[]) {
                 } else {
                     printf("Executable.\n");
                 }
-                system(path); //system executes the program residing in the path
+
+                pid_t child_pid = fork();
+                if (child_pid == -1) {
+                    perror("Error creating process.\n");
+                }
+
+                if (child_pid == 0) {
+                    //child process code
+                    int statusCode = execv(path, options);
+
+                    perror("Execv has failed.\n"); //if reaches this code, execv has failed
+                    exit(1);
+                } else {
+                    //parent process code
+                    waitpid(child_pid, NULL, 0);
+                    printf("Child process is done.\n");
+                }
             } else { //IF there are spaces, meaning there are parameters given
                 //first-time initiliazations and such are done before the while-loop
                 char *delimiter = strtok(rivi, " ");
                 //printf("Delimiter on %s\n", delimiter);
-                kytkin = 1;
+                int kytkin2 = 1;
                 
                 char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
                 int a = 1;
@@ -58,9 +78,9 @@ int main(int argc, char* argv[]) {
 
                 options[0] = path; //execv wants the first argument to be the executable command
                
-                while (kytkin == 1) {
+                while (kytkin2 == 1) {
                     if ((delimiter = strtok(NULL, " ")) == NULL) {
-                        kytkin = 0;
+                        kytkin2 = 0;
                         continue;
                     }
                     //replace the newline if this is the last argument
@@ -86,6 +106,9 @@ int main(int argc, char* argv[]) {
                 if (child_pid == 0) {
                     //child process code
                     statusCode = execv(path, options);
+
+                    perror("Execv has failed.\n"); //if reaches this code, execv has failed
+                    exit(1);
                 } else {
                     //parent process code
                     waitpid(child_pid, NULL, 0);

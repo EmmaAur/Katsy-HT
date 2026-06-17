@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
     int kytkin = 1; //variable for while-loop
     char *rivi = NULL;
     size_t len = 0;
+    ssize_t read;
     char basePath[] = "/usr/bin/"; //path to the executables
     int pathSize = 0;
     int accessCode = 0; //variable to hold access rights result
@@ -121,9 +122,107 @@ int main(int argc, char* argv[]) {
             
 
         }
-    } else if (argc == 2)
+    } else if (argc == 2) // two arguments = batch mode
     {
-        /* code */
+        FILE *Tiedosto = NULL;
+        char *fname = argv[1];
+        if ((Tiedosto = fopen(fname, "r")) == NULL) {
+            printf("Error while opening file. Check filename.\n");
+            exit(1);
+        }
+        while ((read = getline(&rivi, &len, Tiedosto)) != -1) { //the code for the next if-else statement is the same as in interactive mode
+            if (strstr(rivi, " ") == NULL) { //IF there are no spaces (parameters) given for a command
+                char *options[100];
+
+                pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
+                char path[pathSize]; //path to the specific command
+                snprintf(path, sizeof(path), "%s%s", basePath, rivi); //concatenating the strings into one specific path
+                //printf("%s", path);
+                path[strlen(path)-1] = '\0'; //stripping the newline-character from the path
+                options[0] = path;
+                options[1] = '\0';
+                
+                accessCode = access(path, X_OK); //check for execution
+                if (accessCode == -1) {
+                    printf("Not executable. Error number %d\n", errno);
+                    continue;
+                } else {
+                    printf("Executable.\n");
+                }
+
+                pid_t child_pid = fork();
+                if (child_pid == -1) {
+                    perror("Error creating process.\n");
+                }
+
+                if (child_pid == 0) {
+                    //child process code
+                    int statusCode = execv(path, options);
+
+                    perror("Execv has failed.\n"); //if reaches this code, execv has failed
+                    exit(1);
+                } else {
+                    //parent process code
+                    waitpid(child_pid, NULL, 0);
+                    printf("Child process is done.\n");
+                }
+            } else { //IF there are spaces, meaning there are parameters given
+                //first-time initiliazations and such are done before the while-loop
+                char *delimiter = strtok(rivi, " ");
+                //printf("Delimiter on %s\n", delimiter);
+                int kytkin2 = 1;
+                
+                char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
+                int a = 1;
+                int statusCode = 0;
+                
+                char *pathPtr = delimiter; //let's save the actual name of the command into its own variable
+                char path[100];
+                snprintf(path, sizeof(path), "%s%s", basePath, pathPtr); //so this is the actual command path without any options
+
+                options[0] = path; //execv wants the first argument to be the executable command
+               
+                while (kytkin2 == 1) {
+                    if ((delimiter = strtok(NULL, " ")) == NULL) {
+                        kytkin2 = 0;
+                        continue;
+                    }
+                    //replace the newline if this is the last argument
+                    if (strstr(delimiter, "\n")) {
+                        delimiter[strcspn(delimiter, "\n")] = '\0';
+                    }
+
+                    options[a] = delimiter;
+                    //printf("Options %d on %s\n", a, options[a]);
+                    a++;
+                }
+
+                options[a] = '\0'; //execv requires null terminator at the end of array
+
+                /**for (int i=0; i<a; i++) {
+                    printf("%s", options[i]);
+                }*/
+
+                pid_t child_pid = fork();
+                if (child_pid == -1) {
+                    perror("Error creating process.\n");
+                }
+
+                if (child_pid == 0) {
+                    //child process code
+                    statusCode = execv(path, options);
+
+                    perror("Execv has failed.\n"); //if reaches this code, execv has failed
+                    exit(1);
+                } else {
+                    //parent process code
+                    waitpid(child_pid, NULL, 0);
+                    printf("Child process is done.\n");
+                }
+
+
+            } 
+        }
     } else {
         printf("The shell can be invoked with only 1 or 2 arguments i.e. ./lush or ./lush filename.txt");
     }

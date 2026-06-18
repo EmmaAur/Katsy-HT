@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
                 /* Start */
                 // Built in commands
 
-                rivi[strlen(rivi)-1] = '\0';
+                rivi[strlen(rivi)-1] = '\0'; //adding null-terminator to the command
                 
                 // Check if the user wants to exit the shell program
                 exit_cmp = strcmp(exit_str, rivi);
@@ -67,12 +67,8 @@ int main(int argc, char* argv[]) {
 					write(STDERR_FILENO, error_message, strlen(error_message));
                     continue;
 				}
-                
-                rivi[strlen(rivi)] = '\n';
                 /* End */
                 /* ----------------------------------------------------------------------- */
-
-                rivi[strlen(rivi)-1] = '\0'; //adding null-terminator to the command
             
                 for (int i = 0; i < pathSum; i++) {
                     snprintf(path, 100, "%s%s", pathArray[i], rivi); //concatenating the strings to create final paths
@@ -111,7 +107,7 @@ int main(int argc, char* argv[]) {
                 } else {
                     //parent process code
                     waitpid(child_pid, NULL, 0);
-                    printf("Child process is done.\n");
+                    //printf("Child process is done.\n");
                 }
             } else { //IF there are spaces, meaning there are parameters given
                 //first-time initiliazations and such are done before the while-loop
@@ -221,7 +217,7 @@ int main(int argc, char* argv[]) {
                 } else {
                     //parent process code
                     waitpid(child_pid, NULL, 0);
-                    printf("Child process is done.\n");
+                    //printf("Child process is done.\n");
                 }
             }
         }
@@ -257,12 +253,8 @@ int main(int argc, char* argv[]) {
 					write(STDERR_FILENO, error_message, strlen(error_message));
                     continue;
 				}
-                
-                rivi[strlen(rivi)] = '\n';
                 /* End */
                 /* ----------------------------------------------------------------------- */
-
-                rivi[strlen(rivi)-1] = '\0'; //adding null-terminator to the command
             
                 for (int i = 0; i < pathSum; i++) {
                     snprintf(path, 100, "%s%s", pathArray[i], rivi); //concatenating the strings to create final paths
@@ -300,7 +292,7 @@ int main(int argc, char* argv[]) {
                 } else {
                     //parent process code
                     waitpid(child_pid, NULL, 0);
-                    printf("Child process is done.\n");
+                    //printf("Child process is done.\n");
                 }
                 
             } else { //IF there are spaces, meaning there are parameters given

@@ -17,10 +17,8 @@ int main(int argc, char* argv[]) {
     char *rivi = NULL;
     size_t len = 0;
     ssize_t read;
-    char basePath[] = "/usr/bin/"; //path to the executables
     char *pathArray[100]; //array for paths
     int pathSum = 2; //sum of the paths inside the array. Gets increased everytime path command adds more paths
-    int pathSize = 0;
     int accessCode = 0; //variable to hold access rights result
     //let's set the base paths in the pathArray
     pathArray[0] = "/usr/bin/";
@@ -169,21 +167,31 @@ int main(int argc, char* argv[]) {
             if (strstr(rivi, " ") == NULL) { //IF there are no spaces (parameters) given for a command
                 char *options[100];
 
-                pathSize = strlen(basePath) + strlen(rivi) + 1; //'+1' for '\0'
-                char path[pathSize]; //path to the specific command
-                snprintf(path, sizeof(path), "%s%s", basePath, rivi); //concatenating the strings into one specific path
-                //printf("%s", path);
-                path[strlen(path)-1] = '\0'; //stripping the newline-character from the path
+                char path[100];
+
+                rivi[strlen(rivi)-1] = '\0'; //adding null-terminator to the command
+            
+                for (int i = 0; i < pathSum; i++) {
+                    snprintf(path, 100, "%s%s", pathArray[i], rivi); //concatenating the strings to create final paths
+                    //printf("%s", path);
+
+                    accessCode = access(path, X_OK); //check for execution
+                    if (accessCode == -1) {
+                        printf("Not executable. Error number %d\n", errno);
+                        if (i == pathSum-1) {
+                            printf("Error: Command not found in any path.\n");
+                            exit(1);
+                        }
+                        continue;
+                    } else {
+                        printf("Executable.\n");
+                        break;
+                    }
+                }
+
+                //adding the arguments to the options
                 options[0] = path;
                 options[1] = '\0';
-                
-                accessCode = access(path, X_OK); //check for execution
-                if (accessCode == -1) {
-                    printf("Not executable. Error number %d\n", errno);
-                    continue;
-                } else {
-                    printf("Executable.\n");
-                }
 
                 pid_t child_pid = fork();
                 if (child_pid == -1) {
@@ -201,6 +209,7 @@ int main(int argc, char* argv[]) {
                     waitpid(child_pid, NULL, 0);
                     printf("Child process is done.\n");
                 }
+                
             } else { //IF there are spaces, meaning there are parameters given
                 //first-time initiliazations and such are done before the while-loop
                 char *delimiter = strtok(rivi, " ");
@@ -210,10 +219,29 @@ int main(int argc, char* argv[]) {
                 char *options[100]; //we don't know how many options are given, but it is very unlikely the size 100 is exceeded
                 int a = 1;
                 int statusCode = 0;
+                char path[100];
                 
                 char *pathPtr = delimiter; //let's save the actual name of the command into its own variable
-                char path[100];
-                snprintf(path, sizeof(path), "%s%s", basePath, pathPtr); //so this is the actual command path without any options
+               
+            
+                for (int i = 0; i < pathSum; i++) {
+                    snprintf(path, 100, "%s%s", pathArray[i], pathPtr); //concatenating the strings to create final paths
+
+                    //printf("%s", path);
+
+                    accessCode = access(path, X_OK); //check for execution
+                    if (accessCode == -1) {
+                        printf("Not executable. Error number %d\n", errno);
+                        if (i == pathSum-1) {
+                            printf("Error: Command not found in any path.\n");
+                            exit(1);
+                        }
+                        continue;
+                    } else {
+                        printf("Executable.\n");
+                        break;
+                    }
+                }
 
                 options[0] = path; //execv wants the first argument to be the executable command
                
@@ -259,7 +287,8 @@ int main(int argc, char* argv[]) {
             } 
         }
     } else {
-        printf("The shell can be invoked with only 1 or 2 arguments i.e. ./lush or ./lush filename.txt");
+        printf("Error. The shell can be invoked with only 1 or 2 arguments i.e. ./lush or ./lush filename.txt");
+        exit(1);
     }
     
 }

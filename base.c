@@ -23,10 +23,6 @@ int main(int argc, char* argv[]) {
     //let's set the base paths in the pathArray
     pathArray[0] = "/usr/bin/";
     pathArray[1] = "/bin/";
-
-    /* ----------------------------------------------------------------------- */
-    /* Start: */
-    // Initializing variables
     char error_message[30] = "An error has occurred.\n";
     
     // For built in commands
@@ -36,8 +32,6 @@ int main(int argc, char* argv[]) {
     int cd_cmp;
     int path_cmp;
     int exit_cmp;
-    /* End */
-    /* ----------------------------------------------------------------------- */
 
     //no arguments (except program name) = interactive mode
     if (argc < 2) {
@@ -60,6 +54,17 @@ int main(int argc, char* argv[]) {
                 if (exit_cmp == 0) {
 					exit(0);
 				}
+
+                // Check if built-in command path is called without arguments
+                path_cmp = strcmp(rivi, path_str);
+				if (path_cmp == 0) {
+                    // Empty the previous paths from the pathArray
+                    for (int i = 0; i < pathSum; i++) {
+                        pathArray[i] = NULL;
+                    }
+                    pathSum = 0; // Set pathSum to zero because there are currently no paths
+				    continue;
+                }
                 
                 // Check if cd was called without parameters
                 cd_cmp = strcmp(cd_str, rivi);
@@ -172,6 +177,13 @@ int main(int argc, char* argv[]) {
                     }
 				    continue;
                 }
+                
+                // If exit is called with parameters, error will occur.
+                exit_cmp = strcmp(exit_str, rivi);
+                if (exit_cmp == 0) {
+					write(STDERR_FILENO, error_message, strlen(error_message));
+                    continue;
+				}
 
                 /* End */
                 /* ----------------------------------------------------------------------- */
@@ -196,12 +208,7 @@ int main(int argc, char* argv[]) {
                 }
 
                 options[0] = path; //execv wants the first argument to be the executable command
-
                 options[a] = '\0'; //execv requires null terminator at the end of array
-
-                /**for (int i=0; i<a; i++) {
-                    printf("%s", options[i]);
-                }*/
 
                 pid_t child_pid = fork();
                 if (child_pid == -1) {
@@ -239,13 +246,24 @@ int main(int argc, char* argv[]) {
                 /* Start */
                 // Built in commands
 
-                rivi[strlen(rivi)-1] = '\0';
+                rivi[strlen(rivi)-1] = '\0'; //adding null-terminator to the command
                 
                 // Check if the user wants to exit the shell program
                 exit_cmp = strcmp(exit_str, rivi);
                 if (exit_cmp == 0) {
 					exit(0);
 				}
+
+                // Check if built-in command path is called without arguments
+                path_cmp = strcmp(rivi, path_str);
+				if (path_cmp == 0) {
+                    // Empty the previous paths from the pathArray
+                    for (int i = 0; i < pathSum; i++) {
+                        pathArray[i] = NULL;
+                    }
+                    pathSum = 0; // Set pathSum to zero because there are currently no paths
+				    continue;
+                }
                 
                 // Check if cd was called without parameters
                 cd_cmp = strcmp(cd_str, rivi);
@@ -331,6 +349,7 @@ int main(int argc, char* argv[]) {
                 /* Start */
                 // Built in commands, with arguments
 
+                // Functionality for built-in cd command
                 cd_cmp = strcmp(pathPtr, cd_str);
 				if ((cd_cmp == 0) && (a == 2)) {
                     int chd = chdir(options[1]);
@@ -343,20 +362,30 @@ int main(int argc, char* argv[]) {
                     //printf("Error reading [cd] command. [cd] requires 1 argument: cd /new/path\n");
                     continue;
                 }
-                
+                // Functionality for built-in path command
                 path_cmp = strcmp(pathPtr, path_str);
 				if ((path_cmp == 0) && (a >= 1)) {
+                    // Empty the previous paths from the pathArray
                     for (int i = 0; i < pathSum; i++) {
                         pathArray[i] = NULL;
                     }
-                    pathSum = 0;
+                    pathSum = 0; // Set pathSum to zero because there are currently no paths
+                    // Fill the pathArray with the new path(s)
                     for (int i = 0; i < a-1; i++) {
                         pathArray[i] = options[i+1];
                         pathSum++;
                     }
 				    continue;
                 }
-                /* Emd */
+                
+                // If exit is called with parameters, error will occur.
+                exit_cmp = strcmp(exit_str, rivi);
+                if (exit_cmp == 0) {
+					write(STDERR_FILENO, error_message, strlen(error_message));
+                    continue;
+				}
+
+                /* End */
                 /* ----------------------------------------------------------------------- */
 
 
